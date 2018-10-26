@@ -23,8 +23,6 @@ export class MyApp {
 
   constructor(public userProvider: UserProvider, private translate: TranslateService, platform: Platform, private config: Config, private statusBar: StatusBar, private splashScreen: SplashScreen) {
     platform.ready().then(() => {
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
       this.statusBar.styleDefault();
       this.splashScreen.hide();
     });
@@ -32,7 +30,6 @@ export class MyApp {
   }
 
   initTranslate() {
-    // Set the default language for translation strings, and the current language.
     this.translate.setDefaultLang('en');
     const browserLang = this.translate.getBrowserLang();
 
@@ -59,8 +56,6 @@ export class MyApp {
   }
 
   openPage(page) {
-    // Reset the content nav to have just this page
-    // we wouldn't want the back button to show in this scenario
     this.nav.setRoot(page.component);
   }
 }

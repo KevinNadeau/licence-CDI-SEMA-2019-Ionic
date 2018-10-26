@@ -4,12 +4,12 @@ import { MyProfilePage } from './my-profile';
 import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
-  declarations: [
-    MyProfilePage,
-  ],
-  imports: [
-    IonicPageModule.forChild(MyProfilePage),
-    TranslateModule.forChild()
-  ],
+    declarations: [
+        MyProfilePage,
+    ],
+    imports: [
+        IonicPageModule.forChild(MyProfilePage),
+        TranslateModule.forChild()
+    ],
 })
 export class MyProfilePageModule {}
