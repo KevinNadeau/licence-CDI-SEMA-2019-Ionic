@@ -6,9 +6,9 @@ export class Friend {
 }
 
 export class User {
-    username: string = '';
-    password: string = '';
-    fullname: string = '';
-    avatar: string = '';
-    email: string = '';
-}
+    fullname: string = 'yajuve';
+    username: string = 'TheMike';
+    email: string = 'mike.sylvestre@lyknowledge.io';
+    password: string = 'themike';
+    avatar: string = 'Raouf.png';
+  }

@@ -5,8 +5,9 @@ webpackJsonp([5],{
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return UserProvider; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__models_user__ = __webpack_require__(223);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__models_user__ = __webpack_require__(223);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(132);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_core__ = __webpack_require__(0);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -18,11 +19,112 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 
 
+
 var UserProvider = (function () {
-    function UserProvider() {
-        this._user = new __WEBPACK_IMPORTED_MODULE_1__models_user__["b" /* User */]();
-        console.log('Hello UserProvider Provider');
+    function UserProvider(nativeStorage) {
+        var _this = this;
+        this.nativeStorage = nativeStorage;
+        this._user = new __WEBPACK_IMPORTED_MODULE_0__models_user__["b" /* User */]();
+        this._status = 0;
+        this.statusUsers().then(function (theStatus) { return _this._status = theStatus; });
     }
+    /**
+     * Cet methode nous permet de savoir l'etat de notre base de donnée
+     *
+     * @memberOf UserProvider
+     * @returns { _status } => 0 (La base de donnée n'a pas été crée) | -1 (La base de donnée est vide) | 1 (La base de donnée contient des entités)
+     */
+    UserProvider.prototype.statusUsers = function () {
+        var _this = this;
+        return this.nativeStorage.get('users')
+            .then(// Tentative de récuperation de la data stocker via la key 'users'
+        function (// Tentative de récuperation de la data stocker via la key 'users'
+            data) {
+            if (data === null) {
+                _this.nativeStorage.set('users', []); // Création de la data 'users'
+                return 0;
+            }
+            else {
+                if (Array.isArray(data))
+                    return (data.length > 0) ? 1 : -1;
+                else {
+                    _this.nativeStorage.set('users', []);
+                    return 0;
+                }
+            }
+        }, function (error) {
+            _this.nativeStorage.set('users', []);
+            return 0;
+        });
+    };
+    UserProvider.prototype.checkedEmail = function (email) {
+        return this.nativeStorage.get('users').then(function (users) {
+            if (users !== null)
+                for (var i = 0; i < users.length; i++) {
+                    if (users[i].email === email)
+                        return users[i];
+                }
+            return false;
+        });
+    };
+    UserProvider.prototype.registerUser = function (user) {
+        var _this = this;
+        return this.statusUsers().then(function (theStatus) {
+            switch (theStatus) {
+                case 1:// Si les donnée recuperer ne sont pas vide
+                    return _this.nativeStorage.get('users').then(function (users) {
+                        var isValided = false; // Init varaible - L'objectif est ce tester si l'email est deja dans l'array. Par default ont dit qu'il n'y est pas
+                        for (var i = 0; i < users.length; i++)
+                            if (users[i].email === user.email)
+                                isValided = true; // Ont enregistre dans la varible le fait qu'ont ai trouvé l'email de l'utilisateur dans le tableau d'utilisateur
+                        if (isValided)
+                            return false;
+                        _this._user = user;
+                        users.push(user); // Aujouter le nouvelle utilisateur dans le tableau d'utilisateur
+                        return true;
+                    });
+                default:
+                    return _this.nativeStorage.set('users', [user]).then(function (data) { return true; });
+            }
+        });
+    };
+    UserProvider.prototype.loginUser = function (email, password) {
+        var _this = this;
+        return this.checkedEmail(email).then(// Test si l'address email est enregister
+        function (// Test si l'address email est enregister
+            data) {
+            if (data !== false) {
+                _this._user = (data.email === email && data.password === password) ? data : new __WEBPACK_IMPORTED_MODULE_0__models_user__["b" /* User */](); // Ajout du profile user dans la class UserProvider grace au setter. Grace a sa, nous pouvont recuperer le profile à tout moments vu qu'il est stocker dans la class UserProvider
+                return (data.email === email && data.password === password) ? true : false;
+            }
+            return false;
+        });
+    };
+    UserProvider.prototype.updateUser = function (user, isEmail) {
+        var _this = this;
+        if (isEmail === void 0) { isEmail = { type: false }; }
+        return this.nativeStorage.get('users').then(// Récuperation des utilisateur
+        function (// Récuperation des utilisateur
+            users) {
+            for (var i = 0; i < users.length; i++) {
+                if (users[i].email === user.email) {
+                    _this._user = user; // Ajout du profile user dans la class UserProvider grace au setter. Grace a sa, nous pouvont recuperer le profile à tout moments vu qu'il est stocker dans la class UserProvider
+                    users[i] = user;
+                    _this.nativeStorage.set('users', users);
+                    return true;
+                }
+                if (isEmail.type) {
+                    if (users[i].email === isEmail.email) {
+                        _this._user = user; // Ajout du profile user dans la class UserProvider grace au setter. Grace a sa, nous pouvont recuperer le profile à tout moments vu qu'il est stocker dans la class UserProvider
+                        users[i] = user;
+                        _this.nativeStorage.set('users', users);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+    };
     Object.defineProperty(UserProvider.prototype, "user", {
         get: function () {
             return this._user;
@@ -34,8 +136,8 @@ var UserProvider = (function () {
         configurable: true
     });
     UserProvider = __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["A" /* Injectable */])(),
-        __metadata("design:paramtypes", [])
+        Object(__WEBPACK_IMPORTED_MODULE_2__angular_core__["A" /* Injectable */])(),
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */]])
     ], UserProvider);
     return UserProvider;
 }());
@@ -61,7 +163,7 @@ webpackEmptyAsyncContext.id = 130;
 
 /***/ }),
 
-/***/ 181:
+/***/ 182:
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -97,12 +199,12 @@ function webpackAsyncContext(req) {
 webpackAsyncContext.keys = function webpackAsyncContextKeys() {
 	return Object.keys(map);
 };
-webpackAsyncContext.id = 181;
+webpackAsyncContext.id = 182;
 module.exports = webpackAsyncContext;
 
 /***/ }),
 
-/***/ 221:
+/***/ 222:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -136,12 +238,43 @@ var Util = (function () {
 
 /***/ }),
 
-/***/ 222:
+/***/ 223:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Friend; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return User; });
+var Friend = (function () {
+    function Friend() {
+        this.username = '';
+        this.fullname = '';
+        this.avatar = '';
+        this.email = '';
+    }
+    return Friend;
+}());
+
+var User = (function () {
+    function User() {
+        this.fullname = 'yajuve';
+        this.username = 'TheMike';
+        this.email = 'mike.sylvestre@lyknowledge.io';
+        this.password = 'themike';
+        this.avatar = 'Raouf.png';
+    }
+    return User;
+}());
+
+//# sourceMappingURL=user.js.map
+
+/***/ }),
+
+/***/ 224:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return HttpProvider; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_common_http__ = __webpack_require__(135);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_common_http__ = __webpack_require__(136);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_core__ = __webpack_require__(0);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -174,38 +307,7 @@ var HttpProvider = (function () {
 
 /***/ }),
 
-/***/ 223:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Friend; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return User; });
-var Friend = (function () {
-    function Friend() {
-        this.username = '';
-        this.fullname = '';
-        this.avatar = '';
-        this.email = '';
-    }
-    return Friend;
-}());
-
-var User = (function () {
-    function User() {
-        this.username = '';
-        this.password = '';
-        this.fullname = '';
-        this.avatar = '';
-        this.email = '';
-    }
-    return User;
-}());
-
-//# sourceMappingURL=user.js.map
-
-/***/ }),
-
-/***/ 225:
+/***/ 226:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -333,13 +435,13 @@ var MessageMocks = (function () {
 
 /***/ }),
 
-/***/ 226:
+/***/ 227:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser_dynamic__ = __webpack_require__(227);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__app_module__ = __webpack_require__(240);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser_dynamic__ = __webpack_require__(228);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__app_module__ = __webpack_require__(241);
 
 
 Object(__WEBPACK_IMPORTED_MODULE_0__angular_platform_browser_dynamic__["a" /* platformBrowserDynamic */])().bootstrapModule(__WEBPACK_IMPORTED_MODULE_1__app_module__["a" /* AppModule */]);
@@ -347,27 +449,27 @@ Object(__WEBPACK_IMPORTED_MODULE_0__angular_platform_browser_dynamic__["a" /* pl
 
 /***/ }),
 
-/***/ 240:
+/***/ 241:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* unused harmony export createTranslateLoader */
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AppModule; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__ionic_native_camera__ = __webpack_require__(241);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(249);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__ = __webpack_require__(133);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__ionic_native_camera__ = __webpack_require__(242);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(132);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__ = __webpack_require__(134);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_core__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__angular_platform_browser__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_splash_screen__ = __webpack_require__(134);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_splash_screen__ = __webpack_require__(135);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ngx_translate_http_loader__ = __webpack_require__(251);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__angular_common_http__ = __webpack_require__(135);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__angular_common_http__ = __webpack_require__(136);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__ngx_translate_core__ = __webpack_require__(115);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_ionic_angular__ = __webpack_require__(114);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__app_component__ = __webpack_require__(324);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__providers_util_util__ = __webpack_require__(221);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__providers_util_util__ = __webpack_require__(222);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__mocks_providers_items__ = __webpack_require__(326);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__mocks_messageMocks__ = __webpack_require__(225);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__providers_http_http__ = __webpack_require__(222);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__mocks_messageMocks__ = __webpack_require__(226);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__providers_http_http__ = __webpack_require__(224);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__providers_user_user__ = __webpack_require__(116);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -453,8 +555,8 @@ var AppModule = (function () {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MyApp; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_native_splash_screen__ = __webpack_require__(134);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__ = __webpack_require__(133);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_native_splash_screen__ = __webpack_require__(135);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__ = __webpack_require__(134);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ngx_translate_core__ = __webpack_require__(115);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_ionic_angular__ = __webpack_require__(114);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__pages_pages__ = __webpack_require__(325);
@@ -476,14 +578,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 var MyApp = (function () {
-    function MyApp(userProvider, translate, platform, config, statusBar, splashScreen) {
+    function MyApp(config, platform, statusBar, userProvider, splashScreen, translate) {
         var _this = this;
-        this.userProvider = userProvider;
-        this.translate = translate;
         this.config = config;
+        this.platform = platform;
         this.statusBar = statusBar;
+        this.userProvider = userProvider;
         this.splashScreen = splashScreen;
-        this.rootPage = __WEBPACK_IMPORTED_MODULE_5__pages_pages__["a" /* FirstRunPage */];
+        this.translate = translate;
+        this.rootPage = __WEBPACK_IMPORTED_MODULE_5__pages_pages__["a" /* FirstRunPage */]; // Page de lancement par default
         this.pages = [
             { icon: 'contacts', title: 'Friends', component: 'ListFriendsPage' },
             { icon: 'contact', title: 'My Profile', component: 'MyProfilePage' },
@@ -497,31 +600,16 @@ var MyApp = (function () {
     }
     MyApp.prototype.initTranslate = function () {
         var _this = this;
-        this.translate.setDefaultLang('en');
-        var browserLang = this.translate.getBrowserLang();
-        if (browserLang) {
-            if (browserLang === 'zh') {
-                var browserCultureLang = this.translate.getBrowserCultureLang();
-                if (browserCultureLang.match(/-CN|CHS|Hans/i)) {
-                    this.translate.use('zh-cmn-Hans');
-                }
-                else if (browserCultureLang.match(/-TW|CHT|Hant/i)) {
-                    this.translate.use('zh-cmn-Hant');
-                }
-            }
-            else {
-                this.translate.use(this.translate.getBrowserLang());
-            }
-        }
-        else {
-            this.translate.use('en'); // Set your language here
-        }
+        this.translate.setDefaultLang('fr'); // Par defaul, la langue sera en Fr
+        var browserLang = this.translate.getBrowserLang(); // Recuperation de la langue du navigateur - Il renvoie la première langue du navigateur par défaut.
+        if (browserLang !== 'fr')
+            this.translate.use('en'); // Chargement de la langue En
         this.translate.get(['BACK_BUTTON_TEXT']).subscribe(function (values) {
-            _this.config.set('ios', 'backButtonText', values.BACK_BUTTON_TEXT);
+            _this.config.set('ios', 'backButtonText', values.BACK_BUTTON_TEXT); // Definition d'une variable si nous somme sur IOS dont la key sera 'backButtonText' et la valeur BACK_BUTTON_TEXT (voir fichier json dans le dossier i18n)
         });
     };
     MyApp.prototype.openPage = function (page) {
-        this.nav.setRoot(page.component);
+        this.nav.setRoot(page.component); // setRoot - Permet de d'afficher une page mais aussi de definir cet meme page, comme page par default
     };
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_8" /* ViewChild */])(__WEBPACK_IMPORTED_MODULE_4_ionic_angular__["h" /* Nav */]),
@@ -530,7 +618,12 @@ var MyApp = (function () {
     MyApp = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({template:/*ion-inline-start:"/Users/mikechristophersylvestre/Dropbox/LyKnowledge/Formation/IMIE/CDI licence 2018-2019/licence-CDI-SEMA-2019-Ionic/src/app/main.html"*/'<ion-menu [content]="content">\n    <ion-header>\n        <ion-toolbar>\n            <ion-title>Temo Chat</ion-title>\n        </ion-toolbar>\n    </ion-header>\n\n    <ion-content>\n\n        <div padding text-center>\n            <img id="my-avatar" src="./assets/avatar/Raouf.png">\n            <h4 ion-text color="dark-light">{{ userProvider.user.fullname }}</h4>\n        </div>\n\n        <ion-list>\n            <button menuClose ion-item *ngFor="let p of pages" (click)="openPage(p)">\n        <ion-icon [name]="p.icon"></ion-icon> {{p.title}}\n      </button>\n        </ion-list>\n    </ion-content>\n\n</ion-menu>\n<ion-nav #content [root]="rootPage"></ion-nav>'/*ion-inline-end:"/Users/mikechristophersylvestre/Dropbox/LyKnowledge/Formation/IMIE/CDI licence 2018-2019/licence-CDI-SEMA-2019-Ionic/src/app/main.html"*/
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_6__providers_user_user__["a" /* UserProvider */], __WEBPACK_IMPORTED_MODULE_3__ngx_translate_core__["c" /* TranslateService */], __WEBPACK_IMPORTED_MODULE_4_ionic_angular__["k" /* Platform */], __WEBPACK_IMPORTED_MODULE_4_ionic_angular__["a" /* Config */], __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__["a" /* StatusBar */], __WEBPACK_IMPORTED_MODULE_1__ionic_native_splash_screen__["a" /* SplashScreen */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_4_ionic_angular__["a" /* Config */],
+            __WEBPACK_IMPORTED_MODULE_4_ionic_angular__["k" /* Platform */],
+            __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__["a" /* StatusBar */],
+            __WEBPACK_IMPORTED_MODULE_6__providers_user_user__["a" /* UserProvider */],
+            __WEBPACK_IMPORTED_MODULE_1__ionic_native_splash_screen__["a" /* SplashScreen */],
+            __WEBPACK_IMPORTED_MODULE_3__ngx_translate_core__["c" /* TranslateService */]])
     ], MyApp);
     return MyApp;
 }());
@@ -668,5 +761,5 @@ var Item = (function () {
 
 /***/ })
 
-},[226]);
+},[227]);
 //# sourceMappingURL=main.js.map
