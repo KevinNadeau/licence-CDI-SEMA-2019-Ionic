@@ -81,7 +81,7 @@ export class LoginPage {
                 if (isConnect)
                     this.navCtrl.setRoot('ListFriendsPage'); // setRoot -> permet de supprimer toutes les vues de la stack et de naviguer vers la root page.
                 else
-                    this.loginErrorString = "Coonnection error";
+                    this.registerErrorString = "Coonnection error";
             }
         )
     }
